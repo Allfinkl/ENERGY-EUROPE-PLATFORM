@@ -1,0 +1,20 @@
+# Virtual environment
+venv/
+
+# Environment variables - NEVER commit
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# dbt
+dbt/energy_europe/target/
+dbt/energy_europe/logs/
+
+# ML models
+ml/models/
+
+# Jupyter
+.ipynb_checkpoints/
