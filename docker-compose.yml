@@ -1,0 +1,36 @@
+services:
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: energy_user
+      POSTGRES_PASSWORD: energy_pass_2026
+      POSTGRES_DB: energy_europe
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'energy_user']
+      interval: 10s
+      retries: 5
+
+  redis:
+    image: redis:7
+    ports:
+      - '6379:6379'
+
+  streamlit:
+    build: .
+    ports:
+      - '8501:8501'
+    volumes:
+      - .:/app
+    command: streamlit run dashboard/app.py --server.port 8501
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
