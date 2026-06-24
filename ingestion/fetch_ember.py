@@ -1,4 +1,5 @@
 import pandas as pd
+import sqlalchemy
 from datetime import datetime
 import sys
 import os
@@ -21,7 +22,6 @@ KEEP_COLS = [
     'gas_electricity',
     'nuclear_electricity',
     'hydro_electricity',
-    'co2_per_capita',
 ]
 
 def fetch_ember_data():
@@ -39,7 +39,12 @@ def fetch_ember_data():
     df['ingested_at'] = datetime.now()
 
     engine = get_engine()
-    df.to_sql('raw_energy', engine, schema='raw', if_exists='replace', index=False)
+
+    with engine.connect() as conn:
+        conn.execute(sqlalchemy.text("DROP TABLE IF EXISTS raw.raw_energy CASCADE"))
+        conn.commit()
+
+    df.to_sql('raw_energy', engine, schema='raw', if_exists='append', index=False)
     print(f'  ✅ Saved {len(df)} rows to raw.raw_energy')
     return len(df)
 
