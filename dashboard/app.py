@@ -388,8 +388,8 @@ with tab3:
                 marker=dict(size=8, symbol='star', color=color), showlegend=False,
                 hovertemplate=f'<b>{country} Forecast</b><br>2026: {pred_val:.1f} TWh<extra></extra>'
             ))
-    fig_trend.update_layout(**BASE_LAYOUT, height=360,
-                           legend=dict(**BASE_LAYOUT['legend'], orientation='h', y=-0.2, x=0))
+    fig_trend.update_layout(**BASE_LAYOUT, height=360)
+    fig_trend.update_layout(legend=dict(**BASE_LAYOUT['legend'], orientation='h', y=-0.2, x=0))
     fig_trend.update_xaxes(**AXIS_STYLE)
     fig_trend.update_yaxes(**AXIS_STYLE, title='Wind Electricity (TWh)')
     st.plotly_chart(fig_trend, use_container_width=True, config={'displayModeBar': False})
