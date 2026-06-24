@@ -35,7 +35,7 @@ def fetch_weather_forecast():
             f'&timezone=Europe%2FBerlin'
         )
 
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=30)
         data = response.json()
 
         for i, date in enumerate(data['daily']['time']):
