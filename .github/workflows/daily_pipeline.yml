@@ -19,7 +19,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install pandas requests psycopg2-binary sqlalchemy python-dotenv
+        run: pip install pandas requests psycopg2-binary sqlalchemy python-dotenv dbt-postgres==1.8.2
 
       - name: Fetch energy data
         run: python ingestion/fetch_ember.py
@@ -38,3 +38,32 @@ jobs:
           POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
           POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+
+      - name: Create dbt profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml << EOF
+          energy_europe:
+            target: dev
+            outputs:
+              dev:
+                type: postgres
+                host: ${{ secrets.POSTGRES_HOST }}
+                user: ${{ secrets.POSTGRES_USER }}
+                password: ${{ secrets.POSTGRES_PASSWORD }}
+                port: ${{ secrets.POSTGRES_PORT }}
+                dbname: ${{ secrets.POSTGRES_DB }}
+                schema: marts
+                threads: 4
+          EOF
+
+      - name: Run dbt transformations
+        run: |
+          cd dbt/energy_europe
+          dbt run
+
+      - name: Train ML model
+        run: python ml/train_model.py
+
+      - name: Generate ML predictions
+        run: python ml/predict.py
