@@ -1,5 +1,7 @@
 import pandas as pd
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from datetime import datetime
 import sys
 import os
@@ -21,9 +23,16 @@ LOCATIONS = {
     'Portugal':    {'lat': 38.72,  'lon': -9.14},
 }
 
+def get_session():
+    session = requests.Session()
+    retries = Retry(total=4, backoff_factor=2, status_forcelist=[429, 500, 502, 503, 504])
+    session.mount('https://', HTTPAdapter(max_retries=retries))
+    return session
+
 def fetch_weather_forecast():
     print(f'[{datetime.now().strftime("%H:%M:%S")}] Fetching weather forecasts...')
     all_records = []
+    session = get_session()
 
     for country, loc in LOCATIONS.items():
         url = (
@@ -35,18 +44,28 @@ def fetch_weather_forecast():
             f'&timezone=Europe%2FBerlin'
         )
 
-        response = requests.get(url, timeout=30)
-        data = response.json()
+        try:
+            response = session.get(url, timeout=60)
+            response.raise_for_status()
+            data = response.json()
 
-        for i, date in enumerate(data['daily']['time']):
-            all_records.append({
-                'country':            country,
-                'forecast_date':      date,
-                'wind_speed_max_kmh': data['daily']['windspeed_10m_max'][i],
-                'solar_radiation_mj': data['daily']['shortwave_radiation_sum'][i],
-                'precipitation_mm':   data['daily']['precipitation_sum'][i],
-                'ingested_at':        datetime.now()
-            })
+            for i, date in enumerate(data['daily']['time']):
+                all_records.append({
+                    'country':            country,
+                    'forecast_date':      date,
+                    'wind_speed_max_kmh': data['daily']['windspeed_10m_max'][i],
+                    'solar_radiation_mj': data['daily']['shortwave_radiation_sum'][i],
+                    'precipitation_mm':   data['daily']['precipitation_sum'][i],
+                    'ingested_at':        datetime.now()
+                })
+            print(f'  ✅ {country} fetched')
+        except Exception as e:
+            print(f'  ⚠️ {country} failed: {e} — skipping')
+            continue
+
+    if not all_records:
+        print('  ❌ No weather data fetched at all — skipping save')
+        return 0
 
     df = pd.DataFrame(all_records)
     engine = get_engine()
