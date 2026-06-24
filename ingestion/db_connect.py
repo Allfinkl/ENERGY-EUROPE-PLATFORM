@@ -6,15 +6,23 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def get_engine():
-    user     = os.getenv('POSTGRES_USER', 'postgres')
-    password = os.getenv('POSTGRES_PASSWORD', '')
-    host     = os.getenv('POSTGRES_HOST', 'localhost')
-    port     = os.getenv('POSTGRES_PORT', '5432')
-    db       = os.getenv('POSTGRES_DB', 'postgres')
+    # Try Streamlit Cloud secrets first (only works inside a Streamlit app)
+    try:
+        import streamlit as st
+        user     = st.secrets["POSTGRES_USER"]
+        password = st.secrets["POSTGRES_PASSWORD"]
+        host     = st.secrets["POSTGRES_HOST"]
+        port     = st.secrets["POSTGRES_PORT"]
+        db       = st.secrets["POSTGRES_DB"]
+    except Exception:
+        # Fallback to .env / environment variables (local, GitHub Actions)
+        user     = os.getenv('POSTGRES_USER', 'postgres')
+        password = os.getenv('POSTGRES_PASSWORD', '')
+        host     = os.getenv('POSTGRES_HOST', 'localhost')
+        port     = os.getenv('POSTGRES_PORT', '5432')
+        db       = os.getenv('POSTGRES_DB', 'postgres')
 
-    # quote_plus encodes special characters like @ # $ in the password
     encoded_password = quote_plus(password)
-
     conn_str = f'postgresql://{user}:{encoded_password}@{host}:{port}/{db}'
     return create_engine(conn_str)
 
