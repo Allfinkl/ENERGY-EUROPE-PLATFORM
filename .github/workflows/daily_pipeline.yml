@@ -17,19 +17,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-- name: Install dependencies
-  run: |
-    pip install \
-      "pandas==2.2.2" \
-      "numpy==1.26.4" \
-      "requests==2.31.0" \
-      "psycopg2-binary==2.9.9" \
-      "sqlalchemy==2.0.30" \
-      "python-dotenv==1.0.1" \
-      "scikit-learn==1.5.0" \
-      "joblib==1.4.2" \
-      "dbt-core==1.8.2" \
-      "dbt-postgres==1.8.2"
+
+      - name: Install dependencies
+        run: pip install pandas requests psycopg2-binary sqlalchemy python-dotenv "dbt-core==1.8.2" "dbt-postgres==1.8.2"
+
       - name: Fetch energy data
         run: python ingestion/fetch_ember.py
         env:
