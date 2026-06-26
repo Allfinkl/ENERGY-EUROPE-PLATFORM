@@ -19,7 +19,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install pandas requests psycopg2-binary sqlalchemy python-dotenv dbt-postgres==1.8.2
+        run: pip install pandas requests psycopg2-binary sqlalchemy python-dotenv "dbt-core==1.8.2" "dbt-postgres==1.8.2"
 
       - name: Fetch energy data
         run: python ingestion/fetch_ember.py
