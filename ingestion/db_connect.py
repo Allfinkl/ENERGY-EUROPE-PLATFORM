@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def get_engine():
-    # Try Streamlit Cloud secrets first (only works inside a Streamlit app)
+    # Streamlit Cloud secrets first, then .env / environment variables
     try:
         import streamlit as st
         user     = st.secrets["POSTGRES_USER"]
@@ -15,7 +15,6 @@ def get_engine():
         port     = st.secrets["POSTGRES_PORT"]
         db       = st.secrets["POSTGRES_DB"]
     except Exception:
-        # Fallback to .env / environment variables (local, GitHub Actions)
         user     = os.getenv('POSTGRES_USER', 'postgres')
         password = os.getenv('POSTGRES_PASSWORD', '')
         host     = os.getenv('POSTGRES_HOST', 'localhost')
@@ -23,10 +22,10 @@ def get_engine():
         db       = os.getenv('POSTGRES_DB', 'postgres')
 
     encoded_password = quote_plus(password)
-    conn_str = f'postgresql://{user}:{encoded_password}@{host}:{port}/{db}'
+    # +psycopg2 forces the driver we actually install
+    conn_str = f'postgresql+psycopg2://{user}:{encoded_password}@{host}:{port}/{db}'
     return create_engine(conn_str)
 
 if __name__ == '__main__':
     engine = get_engine()
-    print('✅ Connected!')
-    print(engine.url)
+    print('Connected!')
